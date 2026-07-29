@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =========================================================
+         PAGE METADATA & EXTERNAL LIBRARIES
+    ========================================================= -->
+
+    <meta charset="UTF-8">
+    <title>Living Classroom Monitor Dashboard</title>
+
+    <!-- Monitor dashboard stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='monitor_style.css') }}">
+
+    <!-- Leaflet library for map visualization -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+    <!-- External visualization libraries -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Monitor dashboard JavaScript logic -->
+    <script src="{{ url_for('static', filename='monitor_script.js') }}" defer></script>
+
+</head>
+
+
+<body>
+
+<div class="dashboard-container">
+
+    <!-- =========================================================
+         HEADER & QR ACCESS
+    ========================================================= -->
+
+    <header class="dashboard-header">
+
+        <div>
+            <h1>Living Classroom Bird Activity</h1>
+            <p>Real-time acoustic bird detections from BirdWeather stations</p>
+        </div>
+
+        <!-- QR code linking users to the interactive dashboard -->
+        <div class="qr-box">
+            <img src="{{ url_for('static', filename='qr/1C43sl.png') }}" alt="Dashboard QR Code">
+        </div>
+
+    </header>
+
+
+    <!-- =========================================================
+         SUMMARY KPI CARDS
+    ========================================================= -->
+
+    <section class="summary-cards">
+
+        <div class="card">
+            <h3>Total Detections</h3>
+            <p id="totalDetections">--</p>
+        </div>
+
+        <div class="card">
+            <h3>Unique Species</h3>
+            <p id="uniqueSpecies">--</p>
+        </div>
+
+        <div class="card">
+            <h3>Latest Species</h3>
+            <p id="latestSpecies">--</p>
+        </div>
+
+        <div class="card">
+            <h3>Latest Time</h3>
+            <p id="latestTime">--</p>
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         MAIN MONITOR DASHBOARD GRID
+    ========================================================= -->
+
+    <main class="dashboard-grid">
+
+        <!-- Rotating species spotlight display -->
+        <section class="panel spotlight-panel">
+            <h2>Species Spotlight</h2>
+
+            <div id="spotlightCard" class="spotlight-card compact-spotlight">
+                <img id="spotlightImage" src="" alt="Bird species">
+
+                <div>
+                    <h3 id="spotlightSpecies">--</h3>
+                    <p id="spotlightStation">-- detections</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Live recent detection feed -->
+        <section class="panel recent-panel">
+            <h2>Recent Bird Activity</h2>
+
+            <div id="recentDetections" class="recent-list compact-recent-list">
+                Loading recent detections...
+            </div>
+        </section>
+
+
+        <!-- Most frequently detected species -->
+        <section class="panel top-panel">
+            <h2>Top 5 Species</h2>
+
+            <div id="topSpeciesList" class="top-species-list">
+                Loading top species...
+            </div>
+        </section>
+
+
+        <!-- Hourly activity trends and forecast -->
+        <section class="panel best-forecast-panel">
+
+            <div class="best-hours-card">
+
+                <h2>Best Hours to Watch</h2>
+
+                <div id="bestHoursList" class="best-hours-list">
+                    Loading...
+                </div>
+
+                <div class="best-hours-chart-box">
+                    <canvas id="bestHoursChart"></canvas>
+                </div>
+
+            </div>
+
+            <div class="forecast-card">
+
+                <h2>Next Hour Forecast</h2>
+
+                <div id="forecastStatus" class="forecast-status">
+                    Loading...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Long-term species activity timeline -->
+        <section class="panel timeline-panel">
+            <h2>Species Activity Timeline</h2>
+
+            <div id="speciesTimeline" class="species-timeline">
+                Loading species timeline...
+            </div>
+        </section>
+
+
+        <!-- Detection location map -->
+        <section class="panel map-panel">
+            <h2>Map View</h2>
+            <div id="map"></div>
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

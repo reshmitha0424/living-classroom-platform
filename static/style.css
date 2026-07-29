@@ -1,0 +1,705 @@
+/* =========================================================
+   GLOBAL RESET
+========================================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   PAGE STYLING
+========================================================= */
+body {
+  background: #0f172a;
+  color: white;
+  font-family: Arial, sans-serif;
+  overflow-y: auto;
+}
+
+
+/* =========================================================
+   MAIN PAGE CONTAINER
+========================================================= */
+.page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 18px 22px;
+}
+
+
+/* =========================================================
+   DASHBOARD HEADER
+========================================================= */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dashboard-header h1 {
+  font-size: 1.9rem;
+  margin-bottom: 4px;
+}
+
+.dashboard-header p {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+
+/* =========================================================
+   FILTER CONTROLS
+========================================================= */
+.filter-row {
+  display: flex;
+  gap: 12px;
+}
+
+.filter-row select {
+  width: 140px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: white;
+  font-size: 0.85rem;
+}
+
+/* =========================================================
+   SUMMARY KPI CARDS
+========================================================= */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #334155;
+}
+
+.card h3 {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   MAIN DASHBOARD GRID
+========================================================= */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* =========================================================
+   DASHBOARD PANELS
+========================================================= */
+.panel {
+  background: #1e293b;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #334155;
+  overflow: hidden;
+}
+
+.panel h2 {
+  font-size: 1.05rem;
+  margin-bottom: 14px;
+}
+
+/* =========================================================
+   SPECIES SPOTLIGHT PANEL
+========================================================= */
+.spotlight-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.spotlight-inner {
+  flex: 1;
+}
+
+
+/* =========================================================
+   INTERACTIVE MAP SECTION
+========================================================= */
+.map-panel {
+  grid-column: span 2;
+}
+
+#map {
+  height: 430px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* =========================================================
+   RECENT DETECTIONS PANEL
+========================================================= */
+#cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 430px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Custom scrollbar styling */
+#cards::-webkit-scrollbar {
+  width: 6px;
+}
+
+#cards::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 10px;
+}
+
+/* Individual detection card */
+.dcard {
+  background: #334155;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Bird thumbnail image */
+.dcard img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Bird species title */
+.dtitle {
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+}
+
+/* Detection metadata */
+.dmeta {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+}
+
+/* Secondary informational text */
+.muted {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  margin-top: 10px;
+}
+
+/* =========================================================
+   SPECIES SPOTLIGHT SECTION
+========================================================= */
+.spotlight-inner {
+  height: 100%;
+  min-height: 430px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #334155;
+}
+
+/* Spotlight species image */
+.spotlight-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Gradient overlay for readability */
+.spotlight-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 26px 18px 18px;
+
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.95),
+    rgba(15, 23, 42, 0.2),
+    transparent
+  );
+
+  text-align: center;
+}
+
+/* Spotlight species title */
+.spotlight-overlay h3 {
+  font-size: 1.7rem;
+  margin-bottom: 4px;
+}
+
+/* Spotlight metadata text */
+.spotlight-overlay p {
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+/* =========================================================
+   TOP SPECIES VISUALIZATION
+========================================================= */
+#topSpeciesList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Individual species row layout */
+.top-species-modern-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Species thumbnail image */
+.top-species-modern-img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 14px;
+  background: #e5e7eb;
+}
+
+/* Species name and activity bar container */
+.top-species-modern-content {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* Species name styling */
+.top-species-modern-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* Background bar for relative activity visualization */
+.top-species-modern-bar-bg {
+  width: 100%;
+  height: 13px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Detection activity bar */
+.top-species-modern-bar {
+  height: 100%;
+  background: #63d471;
+  border-radius: 20px;
+}
+
+/* =========================================================
+   BEST HOURS & ACTIVITY FORECAST
+========================================================= */
+.best-hours-list {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+
+/* Top activity hour cards */
+.best-hour-pill {
+  flex: 1;
+  background: #334155;
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+
+/* Hourly activity chart container */
+.best-hours-chart-box {
+  height: 190px;
+}
+
+
+/* Activity forecast section */
+.forecast-box {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #334155;
+  text-align: center;
+}
+
+.forecast-box h3 {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+
+/* Predicted activity status */
+.forecast-status {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+/* =========================================================
+   SPECIES TIMELINE VISUALIZATION
+========================================================= */
+.timeline-panel {
+  grid-column: span 3;
+}
+
+.timeline-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Timeline container layout */
+#speciesTimeline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#speciesTimeline {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+
+/* Timeline row structure */
+.timeline-row {
+  display: grid;
+  grid-template-columns: 170px repeat(12, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 7px;
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+
+/* Monthly bucket container */
+.month-box {
+  height: 28px;
+  background: rgba(255,255,255,0.08);
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 3px;
+  align-items: end;
+
+  padding: 3px;
+  border-radius: 6px;
+}
+
+
+/* Detection intensity bars */
+.mini-bar {
+  width: 100%;
+  min-height: 1px;
+  background: #63d471;
+}
+
+
+/* =========================================================
+   SPECIES DETAIL MODAL
+========================================================= */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* Modal container */
+.modal-box {
+  background: #1e293b;
+  padding: 18px;
+  border-radius: 16px;
+  width: 560px;
+  position: relative;
+}
+
+
+/* Modal content layout */
+.modal-content-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+
+/* Species image inside modal */
+.modal-bird-img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+
+/* Modal close button */
+.close-btn {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
+
+/* Tablet and medium-screen layout adjustments */
+
+@media (max-width: 1100px) {
+
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .map-panel,
+  .timeline-panel {
+    grid-column: span 2;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+    gap: 14px;
+  }
+}
+
+
+/* Mobile layout adjustments */
+
+@media (max-width: 700px) {
+
+  body {
+    overflow-y: auto;
+  }
+
+  .page {
+    padding: 14px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .dashboard-header p {
+    font-size: 0.82rem;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-row select {
+    width: 100%;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .card h3 {
+    font-size: 0.75rem;
+  }
+
+  .card p {
+    font-size: 1.1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .map-panel,
+  .recent-panel,
+  .spotlight-panel,
+  .top-panel,
+  .best-panel,
+  .timeline-panel {
+    grid-column: span 1;
+  }
+
+  #map {
+    height: 320px;
+  }
+
+  #cards {
+    max-height: 420px;
+  }
+
+  .spotlight-inner {
+    height: 300px;
+  }
+
+  .best-hours-chart-box {
+    height: 170px;
+  }
+
+  .timeline-row {
+    grid-template-columns: 140px repeat(12, 72px);
+    font-size: 0.68rem;
+  }
+
+  #speciesTimeline {
+    overflow-x: auto;
+  }
+
+  .month-box {
+    height: 24px;
+  }
+
+  .modal-box {
+    width: 92vw;
+  }
+
+  .modal-content-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-bird-img {
+    width: 100%;
+    height: 240px;
+  }
+}
+
+
+/* Small-screen device optimizations */
+@media (max-width: 420px) {
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.3rem;
+  }
+
+  #map {
+    height: 280px;
+  }
+
+  .spotlight-inner {
+    height: 260px;
+  }
+
+  .top-species-modern-row {
+    grid-template-columns: 44px 1fr;
+  }
+
+  .top-species-modern-img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .forecast-status {
+    font-size: 1.25rem;
+  }
+}
+
+
+/* =========================================================
+   INTERACTIVE ELEMENTS
+========================================================= */
+#topSpecies,
+.top-species-modern-name,
+#spotlightSpecies {
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   AUDIO PLAYER SECTION
+========================================================= */
+.audio-box {
+  margin-top: 14px;
+}
+
+.audio-box audio {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.no-audio {
+  margin-top: 14px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+
+/* =========================================================
+   SPECIES DETAIL TEXT STYLING
+========================================================= */
+.scientific-name {
+  color: #cbd5e1;
+  font-style: italic;
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
+
+.audio-title {
+  margin-top: 4px;
+  margin-bottom: 6px;
+  font-style: italic;
+  color: #cbd5e1;
+}

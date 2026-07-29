@@ -1,0 +1,24 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python bytecode and caches
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Local VS Code settings
+.vscode/settings.json
+
+# Archived SQLite databases
+archive/sqlite_databases/
+*.db
