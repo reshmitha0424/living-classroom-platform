@@ -4,6 +4,7 @@
 from flask import Flask, jsonify, render_template, request      # web application routing and API responses
 from datetime import datetime, timedelta                        # handling timestamps and time-based filtering
 from zoneinfo import ZoneInfo
+import calendar
 import psycopg                                                  # PostgreSQL database connection library
 import pandas as pd                                             # data processing and dataframe operations
 from sklearn.ensemble import RandomForestClassifier             # machine learning predictions
@@ -53,7 +54,12 @@ NON_BIRD_SPECIES = [
 # =========================================================
 # FILTER CONDITION BUILDER - TIME AND STATION FILTERS
 # =========================================================
-def get_filter_condition(filter_value, station_value):
+def get_filter_condition(
+    filter_value,
+    station_value,
+    date_start=None,
+    date_end=None
+):
     conditions = []                                             # SQL filter conditions
     params = []                                                 # corresponding query parameters
 
@@ -72,6 +78,30 @@ def get_filter_condition(filter_value, station_value):
         ).isoformat()
         conditions.append("timestamp >= %s")                    # timestamp filter condition
         params.append(start_of_day)                             # Add timestamp value to query parameters
+
+    # --- Selected local calendar date filter --- #
+    elif filter_value == "date":
+        if not date_start or not date_end:
+            raise ValueError("Selected date boundaries are required.")
+
+        start_dt = datetime.fromisoformat(
+            date_start.replace("Z", "+00:00")
+        )
+        end_dt = datetime.fromisoformat(
+            date_end.replace("Z", "+00:00")
+        )
+
+        if start_dt.tzinfo is None or end_dt.tzinfo is None:
+            raise ValueError(
+                "Selected date boundaries must include a timezone."
+            )
+
+        if end_dt <= start_dt:
+            raise ValueError("Selected date range is invalid.")
+
+        conditions.append("timestamp >= %s")
+        conditions.append("timestamp < %s")
+        params.extend((start_dt, end_dt))
 
     # --- Station specific filter --- #
     if station_value != "all":
@@ -116,9 +146,16 @@ def latest():
         # Read dashboard filter selections from frontend
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)            
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
 
 
         # Retrieve latest detection records from database
@@ -172,9 +209,16 @@ def summary():
         # Read dashboard filter selections from frontend
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)            
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
 
 
         # Total number of detections
@@ -248,9 +292,16 @@ def top_species():
         # Read dashboard filter selections from frontend
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
                                                                 
         # Retrieve top detected species with detection counts
         rows = cursor.execute(f"""
@@ -296,9 +347,16 @@ def monthly():
         # Read dashboard filter selections from frontend
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
 
         # Count detections grouped by month
         rows = cursor.execute(f"""
@@ -361,9 +419,16 @@ def locations():
         # Read dashboard filter selections from frontend
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
 
 
         # Exclude records without valid coordinates
@@ -422,9 +487,141 @@ def species_timeline():
         # Read dashboard filter selections from frontend
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
+
+        # Return a species-by-date monthly heatmap for a selected date
+        if filter_value == "date":
+            selected_date = request.args.get("selected_date")
+            time_zone = request.args.get("time_zone")
+
+            if not selected_date or not time_zone:
+                raise ValueError(
+                    "Selected date and time zone are required."
+                )
+
+            selected_day = datetime.strptime(
+                selected_date,
+                "%Y-%m-%d"
+            ).date()
+            user_timezone = ZoneInfo(time_zone)
+
+            month_start = datetime(
+                selected_day.year,
+                selected_day.month,
+                1,
+                tzinfo=user_timezone
+            )
+
+            if selected_day.month == 12:
+                month_end = datetime(
+                    selected_day.year + 1,
+                    1,
+                    1,
+                    tzinfo=user_timezone
+                )
+            else:
+                month_end = datetime(
+                    selected_day.year,
+                    selected_day.month + 1,
+                    1,
+                    tzinfo=user_timezone
+                )
+
+            heatmap_where, heatmap_params = get_filter_condition(
+                "all",
+                station_value
+            )
+
+            rows = cursor.execute(f"""
+                WITH daily_counts AS (
+                    SELECT
+                        species,
+                        timezone(%s, timestamp)::date AS activity_date,
+                        COUNT(*) AS daily_count
+                    FROM detections
+                    {heatmap_where}
+                    AND timestamp >= %s
+                    AND timestamp < %s
+                    GROUP BY species, activity_date
+                ),
+                ranked_species AS (
+                    SELECT
+                        species,
+                        SUM(daily_count) AS monthly_total,
+                        ROW_NUMBER() OVER (
+                            ORDER BY SUM(daily_count) DESC, species
+                        ) AS species_rank
+                    FROM daily_counts
+                    GROUP BY species
+                )
+                SELECT
+                    daily_counts.species,
+                    daily_counts.activity_date,
+                    daily_counts.daily_count,
+                    ranked_species.monthly_total
+                FROM daily_counts
+                JOIN ranked_species
+                    ON ranked_species.species = daily_counts.species
+                WHERE ranked_species.species_rank <= 10
+                ORDER BY
+                    ranked_species.species_rank,
+                    daily_counts.activity_date
+            """, (
+                time_zone,
+                *heatmap_params,
+                month_start,
+                month_end
+            )).fetchall()
+
+            conn.close()
+
+            days_in_month = calendar.monthrange(
+                selected_day.year,
+                selected_day.month
+            )[1]
+            date_keys = [
+                f"{selected_day.year:04d}-"
+                f"{selected_day.month:02d}-"
+                f"{day:02d}"
+                for day in range(1, days_in_month + 1)
+            ]
+
+            species_rows = []
+            species_lookup = {}
+
+            for species, activity_date, daily_count, monthly_total in rows:
+                if species not in species_lookup:
+                    species_entry = {
+                        "name": species,
+                        "monthly_total": int(monthly_total),
+                        "daily_counts": {
+                            date_key: 0 for date_key in date_keys
+                        }
+                    }
+                    species_lookup[species] = species_entry
+                    species_rows.append(species_entry)
+
+                species_lookup[species]["daily_counts"][
+                    activity_date.isoformat()
+                ] = int(daily_count)
+
+            return jsonify(
+                ok=True,
+                mode="species_month_heatmap",
+                year=selected_day.year,
+                month=selected_day.month,
+                selected_date=selected_day.isoformat(),
+                species=species_rows
+            )
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
 
         # Retrieve detection counts grouped by species and timestamp
         rows = cursor.execute(f"""
@@ -546,9 +743,16 @@ def species_detail():
         species = request.args.get("species")
         filter_value = request.args.get("filter", "all")
         station_value = request.args.get("station", "all")
+        date_start = request.args.get("date_start")
+        date_end = request.args.get("date_end")
 
         # Generate SQL filter conditions dynamically
-        where_clause, params = get_filter_condition(filter_value, station_value)
+        where_clause, params = get_filter_condition(
+            filter_value,
+            station_value,
+            date_start,
+            date_end
+        )
 
 
         # Add selected species condition to existing filters

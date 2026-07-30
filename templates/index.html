@@ -30,11 +30,22 @@
     <div class="filter-row">
 
       <!-- Time-range filter -->
-      <select onchange="setFilter(this.value)">
+      <select id="timeFilter" onchange="setFilter(this.value)">
         <option value="1h">Last 1 Hour</option>
         <option value="today">Today</option>
         <option value="all" selected>All Time</option>
+        <option value="date" hidden>Select Date</option>
       </select>
+
+      <!-- Calendar date filter -->
+      <label class="date-filter">
+        <span>Select Date</span>
+        <input
+          id="dateFilter"
+          type="date"
+          onchange="setDateFilter(this.value)"
+        >
+      </label>
 
       <!-- Station-selection filter -->
       <select onchange="setStation(this.value)">

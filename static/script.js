@@ -1,33 +1,92 @@
 let currentFilter = "all";
 let currentStation = "all";
+let selectedDateStart = null;
+let selectedDateEnd = null;
+let selectedDateValue = null;
+let selectedTimeZone =
+  Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 let bestHoursChart = null;
 
 let uniqueSpeciesData = [];
 let uniqueSpeciesIndex = 0;
 
-function setFilter(filter) {
-  currentFilter = filter;
-
+function refreshFilteredDashboard() {
   refresh();
   loadSummary();
   loadTopSpecies();
+  loadMonthly();
   loadSpeciesTimeline();
   loadMap();
+}
+
+function setFilter(filter) {
+  if (filter === "date") {
+    document.getElementById("dateFilter").focus();
+    return;
+  }
+
+  currentFilter = filter;
+  selectedDateStart = null;
+  selectedDateEnd = null;
+  selectedDateValue = null;
+  document.getElementById("dateFilter").value = "";
+
+  refreshFilteredDashboard();
 }
 
 function setStation(station) {
   currentStation = station;
 
-  refresh();
-  loadSummary();
-  loadTopSpecies();
-  loadSpeciesTimeline();
-  loadMap();
+  refreshFilteredDashboard();
+}
+
+function setDateFilter(value) {
+  if (!value) {
+    currentFilter = "all";
+    selectedDateStart = null;
+    selectedDateEnd = null;
+    selectedDateValue = null;
+    document.getElementById("timeFilter").value = "all";
+    refreshFilteredDashboard();
+    return;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const start = new Date(year, month - 1, day);
+  const end = new Date(year, month - 1, day + 1);
+
+  selectedDateStart = start.toISOString();
+  selectedDateEnd = end.toISOString();
+  selectedDateValue = value;
+  currentFilter = "date";
+
+  document.getElementById("timeFilter").value = "date";
+  refreshFilteredDashboard();
+}
+
+function getFilterQuery() {
+  const params = new URLSearchParams({
+    filter: currentFilter,
+    station: currentStation
+  });
+
+  if (
+    currentFilter === "date" &&
+    selectedDateStart &&
+    selectedDateEnd
+  ) {
+    params.set("date_start", selectedDateStart);
+    params.set("date_end", selectedDateEnd);
+    params.set("selected_date", selectedDateValue);
+    params.set("time_zone", selectedTimeZone);
+  }
+
+  return params.toString();
 }
 
 async function refresh() {
   try {
-    const res = await fetch(`/latest?filter=${currentFilter}&station=${currentStation}`);
+    const res = await fetch(`/latest?${getFilterQuery()}`);
     const data = await res.json();
 
     if (data.ok) {
@@ -53,7 +112,9 @@ async function refresh() {
 }
 
 async function openSpeciesModal(species) {
-  const res = await fetch(`/species-detail?species=${encodeURIComponent(species)}&filter=${currentFilter}&station=${currentStation}`);
+  const res = await fetch(
+    `/species-detail?species=${encodeURIComponent(species)}&${getFilterQuery()}`
+  );
   const data = await res.json();
 
   if (!data.ok) return;
@@ -92,7 +153,7 @@ function closeSpeciesModal() {
 }
 
 async function loadSummary() {
-  const res = await fetch(`/summary?filter=${currentFilter}&station=${currentStation}`);
+  const res = await fetch(`/summary?${getFilterQuery()}`);
   const data = await res.json();
 
   if (data.ok) {
@@ -109,7 +170,7 @@ async function loadSummary() {
 }
 
 async function loadTopSpecies() {
-  const res = await fetch(`/top-species?filter=${currentFilter}&station=${currentStation}`);
+  const res = await fetch(`/top-species?${getFilterQuery()}`);
   const data = await res.json();
 
   if (!data.ok) return;
@@ -150,12 +211,29 @@ async function loadTopSpecies() {
   document.getElementById("topSpeciesList").innerHTML = html;
 }
 
+async function loadMonthly() {
+  const res = await fetch(`/monthly?${getFilterQuery()}`);
+  return await res.json();
+}
+
 async function loadSpeciesTimeline() {
-  const res = await fetch(`/species-timeline?filter=${currentFilter}&station=${currentStation}`);
+  const res = await fetch(`/species-timeline?${getFilterQuery()}`);
   const data = await res.json();
 
   if (!data.ok) return;
 
+  if (
+    currentFilter === "date" &&
+    data.mode === "species_month_heatmap"
+  ) {
+    renderSpeciesMonthHeatmap(data);
+    return;
+  }
+
+  renderExistingSpeciesTimeline(data);
+}
+
+function renderExistingSpeciesTimeline(data) {
   let html = `
     <div class="timeline-row" style="font-weight:bold;">
       <div>Species</div>
@@ -201,6 +279,134 @@ async function loadSpeciesTimeline() {
 
     html += `</div>`;
   });
+
+  document.getElementById("speciesTimeline").innerHTML = html;
+}
+
+function getSpeciesHeatmapLevel(count, globalMax) {
+  if (count === 0 || globalMax === 0) return 0;
+
+  const normalized =
+    Math.log1p(count) / Math.log1p(globalMax);
+
+  if (normalized <= 0.25) return 1;
+  if (normalized <= 0.50) return 2;
+  if (normalized <= 0.75) return 3;
+  return 4;
+}
+
+function renderSpeciesMonthHeatmap(data) {
+  const speciesRows = data.species || [];
+  const daysInMonth =
+    new Date(data.year, data.month, 0).getDate();
+  const monthLabel = new Date(
+    data.year,
+    data.month - 1,
+    1
+  ).toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric"
+  });
+
+  if (!speciesRows.length) {
+    document.getElementById("speciesTimeline").innerHTML = `
+      <div class="species-heatmap-empty">
+        No bird activity found for ${monthLabel}.
+      </div>
+    `;
+    return;
+  }
+
+  const allCounts = speciesRows.flatMap(row =>
+    Object.values(row.daily_counts)
+  );
+  const globalMax = Math.max(...allCounts, 0);
+  const gridColumns =
+    `minmax(170px, 210px) repeat(${daysInMonth}, 16px)`;
+
+  let html = `
+    <div class="species-heatmap-month">${monthLabel}</div>
+    <div class="species-heatmap-scroll">
+      <div class="species-heatmap-grid">
+        <div
+          class="species-heatmap-row species-heatmap-header"
+          style="grid-template-columns:${gridColumns}"
+        >
+          <div class="species-heatmap-label">Species</div>
+  `;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey =
+      `${data.year}-${String(data.month).padStart(2, "0")}-` +
+      `${String(day).padStart(2, "0")}`;
+    const selectedClass =
+      dateKey === data.selected_date ? " is-selected-date" : "";
+
+    html += `
+      <div class="species-heatmap-day-number${selectedClass}">
+        ${day}
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+
+  speciesRows.forEach(row => {
+    html += `
+      <div
+        class="species-heatmap-row"
+        style="grid-template-columns:${gridColumns}"
+      >
+        <div
+          class="species-heatmap-label"
+          title="${row.name} — ${row.monthly_total} detections"
+        >
+          ${row.name}
+        </div>
+    `;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey =
+        `${data.year}-${String(data.month).padStart(2, "0")}-` +
+        `${String(day).padStart(2, "0")}`;
+      const count = row.daily_counts[dateKey] || 0;
+      const level = getSpeciesHeatmapLevel(count, globalMax);
+      const selectedClass =
+        dateKey === data.selected_date ? " is-selected-date" : "";
+      const fullDate = new Date(
+        data.year,
+        data.month - 1,
+        day
+      ).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+
+      html += `
+        <div
+          class="species-heatmap-cell heatmap-level-${level}${selectedClass}"
+          title="${row.name}&#10;${fullDate}&#10;${count} detections"
+        ></div>
+      `;
+    }
+
+    html += `</div>`;
+  });
+
+  html += `
+      </div>
+    </div>
+    <div class="species-heatmap-legend">
+      <span>Less</span>
+      <span class="species-heatmap-cell heatmap-level-0"></span>
+      <span class="species-heatmap-cell heatmap-level-1"></span>
+      <span class="species-heatmap-cell heatmap-level-2"></span>
+      <span class="species-heatmap-cell heatmap-level-3"></span>
+      <span class="species-heatmap-cell heatmap-level-4"></span>
+      <span>More</span>
+    </div>
+  `;
 
   document.getElementById("speciesTimeline").innerHTML = html;
 }
@@ -358,7 +564,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 async function loadMap() {
-  const res = await fetch(`/locations?station=${currentStation}&filter=${currentFilter}`);
+  const res = await fetch(`/locations?${getFilterQuery()}`);
   const data = await res.json();
 
   markersLayer.clearLayers();
@@ -379,6 +585,8 @@ async function loadDashboard() {
   await loadSummary();
 
   await loadTopSpecies();
+
+  await loadMonthly();
 
   await loadSpeciesTimeline();
 

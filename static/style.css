@@ -67,6 +67,25 @@ body {
   font-size: 0.85rem;
 }
 
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-filter span {
+  font-size: 0.85rem;
+}
+
+.filter-row input[type="date"] {
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: white;
+  font-size: 0.85rem;
+}
+
 /* =========================================================
    SUMMARY KPI CARDS
 ========================================================= */
@@ -433,6 +452,115 @@ body {
   background: #63d471;
 }
 
+/* Species-by-date heatmap shown for a selected calendar date */
+.species-heatmap-month {
+  margin-bottom: 12px;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.species-heatmap-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.species-heatmap-grid {
+  width: max-content;
+  min-width: 100%;
+}
+
+.species-heatmap-row {
+  display: grid;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.species-heatmap-header {
+  margin-bottom: 7px;
+}
+
+.species-heatmap-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  overflow: hidden;
+  padding-right: 10px;
+  background: #0f172a;
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.species-heatmap-header .species-heatmap-label {
+  z-index: 3;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.species-heatmap-day-number {
+  width: 16px;
+  color: #94a3b8;
+  font-size: 0.62rem;
+  line-height: 16px;
+  text-align: center;
+}
+
+.species-heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.heatmap-level-0 {
+  background: #1e293b;
+}
+
+.heatmap-level-1 {
+  background: #14532d;
+}
+
+.heatmap-level-2 {
+  background: #15803d;
+}
+
+.heatmap-level-3 {
+  background: #22c55e;
+}
+
+.heatmap-level-4 {
+  background: #86efac;
+}
+
+.species-heatmap-cell.is-selected-date,
+.species-heatmap-day-number.is-selected-date {
+  outline: 1px solid #38bdf8;
+  outline-offset: 1px;
+}
+
+.species-heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 8px;
+  color: #94a3b8;
+  font-size: 0.68rem;
+}
+
+.species-heatmap-empty {
+  padding: 24px 0;
+  color: #94a3b8;
+  text-align: center;
+}
+
 
 /* =========================================================
    SPECIES DETAIL MODAL
@@ -546,6 +674,10 @@ body {
   }
 
   .filter-row select {
+    width: 100%;
+  }
+
+  .filter-row input[type="date"] {
     width: 100%;
   }
 
