@@ -11,7 +11,7 @@ let uniqueSpeciesData = [];
 let uniqueSpeciesIndex = 0;
 
 function refreshFilteredDashboard() {
-  refresh();
+  loadRecentDetections();
   loadSummary();
   loadTopSpecies();
   loadMonthly();
@@ -84,7 +84,7 @@ function getFilterQuery() {
   return params.toString();
 }
 
-async function refresh() {
+async function loadRecentDetections() {
   try {
     const res = await fetch(`/latest?${getFilterQuery()}`);
     const data = await res.json();
@@ -580,7 +580,7 @@ async function loadMap() {
 
 async function loadDashboard() {
 
-  await refresh();
+  await loadRecentDetections();
 
   await loadSummary();
 
@@ -603,7 +603,7 @@ loadDashboard();
 
 setInterval(() => {
 
-  refresh();
+  loadRecentDetections();
 
   loadSummary();
 

@@ -22,7 +22,7 @@ Living Classroom Platform is a Flask-based bird activity monitoring and analytic
 ```text
 BirdWeather API
         ↓
-ingest.py / pull_historicData.py
+continuous_ingestion.py / historical_ingestion.py
         ↓
 PostgreSQL
         ↓
@@ -33,13 +33,15 @@ Browser Dashboard
 
 ## Project Structure
 
+See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for a concise description of active, supporting, and legacy files.
+
 ```text
 .
 ├── app.py                     # Flask application and dashboard APIs
-├── ingest.py                  # Continuous live detection ingestion
-├── pull_historicData.py       # Historical BirdWeather ingestion
-├── database_postgres.py       # PostgreSQL schema initialization
-├── db_config.py               # Environment-based configuration
+├── continuous_ingestion.py    # Continuous live detection ingestion
+├── historical_ingestion.py    # Historical BirdWeather ingestion
+├── initialize_database.py     # PostgreSQL schema initialization
+├── database_config.py         # Environment-based database configuration
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Example environment configuration
 ├── templates/                 # Flask HTML templates
@@ -125,7 +127,7 @@ Do not commit `.env`.
 Create the PostgreSQL database specified by `DB_NAME`, then initialize the `detections` table and unique index:
 
 ```bash
-python database_postgres.py
+python initialize_database.py
 ```
 
 Expected output:
@@ -139,7 +141,7 @@ PostgreSQL detections table initialized successfully.
 Start continuous ingestion for the configured BirdWeather stations:
 
 ```bash
-python ingest.py
+python continuous_ingestion.py
 ```
 
 The process polls the BirdWeather API every 60 seconds and inserts new detections into PostgreSQL. Duplicate detections are ignored.
@@ -148,7 +150,7 @@ Stop the process with `Ctrl+C`.
 
 ## Run Historical Ingestion
 
-Set the required date range in `pull_historicData.py`:
+Set the required date range in `historical_ingestion.py`:
 
 ```python
 FROM_DATE = "YYYY-MM-DD"
@@ -158,7 +160,7 @@ TO_DATE = "YYYY-MM-DD"
 Then run:
 
 ```bash
-python pull_historicData.py
+python historical_ingestion.py
 ```
 
 The script processes the inclusive date range one day at a time and retrieves detections in hourly windows. Existing detections are ignored through PostgreSQL conflict handling.

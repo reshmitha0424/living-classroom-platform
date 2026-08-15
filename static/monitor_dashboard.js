@@ -1,4 +1,4 @@
-const REFRESH_TIME = 30000;
+const REFRESH_INTERVAL_MS = 30000;
 
 let map = null;
 let markersLayer = null;
@@ -7,7 +7,7 @@ let latestData = [];
 let uniqueSpeciesData = [];
 let uniqueSpeciesIndex = 0;
 
-async function fetchJSON(url) {
+async function fetchJson(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch ${url}`);
     return await response.json();
@@ -27,7 +27,7 @@ function formatTime(timestamp) {
 
 async function loadSummary() {
     try {
-        const data = await fetchJSON("/summary?filter=all&station=all");
+        const data = await fetchJson("/summary?filter=all&station=all");
 
         totalDetections.textContent = data.total_detections ?? "--";
         uniqueSpecies.textContent = data.unique_species ?? "--";
@@ -65,7 +65,7 @@ async function loadMap() {
     try {
         initializeMap();
 
-        const data = await fetchJSON("/locations?filter=all&station=all");
+        const data = await fetchJson("/locations?filter=all&station=all");
         markersLayer.clearLayers();
 
         const bounds = [];
@@ -98,7 +98,7 @@ async function loadMap() {
 
 async function loadRecentDetections() {
     try {
-        const response = await fetchJSON("/latest?filter=all&station=all");
+        const response = await fetchJson("/latest?filter=all&station=all");
         const data = response.rows || [];
 
         recentDetections.innerHTML = "";
@@ -146,7 +146,7 @@ async function loadRecentDetections() {
 
 async function loadUniqueSpeciesSpotlight() {
     try {
-        const response = await fetchJSON("/unique-species-list");
+        const response = await fetchJson("/unique-species-list");
 
         uniqueSpeciesData = response.rows || [];
 
@@ -183,7 +183,7 @@ function updateUniqueSpeciesSpotlight() {
 }
 async function loadSpeciesTimeline() {
     try {
-        const response = await fetchJSON("/species-timeline?filter=all&station=all");
+        const response = await fetchJson("/species-timeline?filter=all&station=all");
         const data = response.rows || [];
 
         speciesTimeline.innerHTML = "";
@@ -243,7 +243,7 @@ async function loadSpeciesTimeline() {
 }
 async function loadTopSpeciesList() {
     try {
-        const response = await fetchJSON("/top-species?filter=all&station=all");
+        const response = await fetchJson("/top-species?filter=all&station=all");
         const data = response.rows || [];
 
         topSpeciesList.innerHTML = "";
@@ -299,7 +299,7 @@ let bestHoursChart = null;
 
 async function loadBestHours() {
     try {
-        const response = await fetchJSON("/best-hours");
+        const response = await fetchJson("/best-hours");
 
         const hours = response.hours || [];
 
@@ -364,7 +364,7 @@ async function loadBestHours() {
 }
 async function loadActivityForecast() {
     try {
-        const response = await fetchJSON("/activity-forecast");
+        const response = await fetchJson("/activity-forecast");
 
         if (!response.ok) {
             forecastStatus.textContent = "Unavailable";
@@ -391,7 +391,7 @@ async function loadMonitorDashboard() {
 document.addEventListener("DOMContentLoaded", async () => {
     await loadMonitorDashboard();
 
-    setInterval(loadMonitorDashboard, REFRESH_TIME);
+    setInterval(loadMonitorDashboard, REFRESH_INTERVAL_MS);
 
     setInterval(() => {
         updateUniqueSpeciesSpotlight();

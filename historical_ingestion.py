@@ -4,7 +4,7 @@ import psycopg
 import time
 from datetime import datetime, timedelta, timezone
 
-from db_config import (
+from database_config import (
     DB_HOST,
     DB_PORT,
     DB_NAME,

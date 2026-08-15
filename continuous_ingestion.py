@@ -7,7 +7,7 @@ import psycopg           # PostgreSQL database operations
 import time              # Controls polling intervals
 from datetime import datetime, timezone
 
-from db_config import (
+from database_config import (
     DB_HOST,
     DB_PORT,
     DB_NAME,
@@ -24,7 +24,7 @@ from db_config import (
 # URL = f"https://app.birdweather.com/api/v1/stations/{STATION_ID}/detections"
 
 # Active BirdWeather station IDs used for ingestion
-STATIONS = [14218, 24415, 24416, 24418, 24420, 24421, 24422, 24423, 24424]
+STATION_IDS = [14218, 24415, 24416, 24418, 24420, 24421, 24422, 24423, 24424]
 
 # =========================================================
 # GET LATEST STORED TIMESTAMP
@@ -185,7 +185,7 @@ while True:
     try:
 
         # Loop through each configured station
-        for station_id in STATIONS:
+        for station_id in STATION_IDS:
 
             # Build station-specific BirdWeather API URL
             url = f"https://app.birdweather.com/api/v1/stations/{station_id}/detections"

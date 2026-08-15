@@ -1,9 +1,9 @@
 import psycopg
 
-from db_config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+from database_config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
 
-def init_db():
+def initialize_database():
     conn = psycopg.connect(
         host=DB_HOST,
         port=DB_PORT,
@@ -43,4 +43,4 @@ def init_db():
 
 
 if __name__ == "__main__":
-    init_db()
+    initialize_database()

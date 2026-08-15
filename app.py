@@ -9,7 +9,7 @@ import psycopg                                                  # PostgreSQL dat
 import pandas as pd                                             # data processing and dataframe operations
 from sklearn.ensemble import RandomForestClassifier             # machine learning predictions
 
-from db_config import (
+from database_config import (
     DB_HOST,
     DB_PORT,
     DB_NAME,
@@ -128,7 +128,7 @@ def monitor_dashboard():
 # =========================================================
 @app.get("/dashboard")
 def dashboard():
-    return render_template("index.html")
+    return render_template("dashboard.html")
 
 
 # =========================================================

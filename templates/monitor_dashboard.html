@@ -11,7 +11,7 @@
     <title>Living Classroom Monitor Dashboard</title>
 
     <!-- Monitor dashboard stylesheet -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='monitor_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='monitor_dashboard.css') }}">
 
     <!-- Leaflet library for map visualization -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
@@ -21,7 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Monitor dashboard JavaScript logic -->
-    <script src="{{ url_for('static', filename='monitor_script.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='monitor_dashboard.js') }}" defer></script>
 
 </head>
 
@@ -43,7 +43,7 @@
 
         <!-- QR code linking users to the interactive dashboard -->
         <div class="qr-box">
-            <img src="{{ url_for('static', filename='qr/1C43sl.png') }}" alt="Dashboard QR Code">
+            <img src="{{ url_for('static', filename='qr/dashboard_qr.png') }}" alt="Dashboard QR Code">
         </div>
 
     </header>
