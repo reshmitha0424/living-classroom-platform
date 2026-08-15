@@ -1,16 +1,18 @@
+import os
 import requests
 import psycopg
 import time
 from datetime import datetime, timedelta, timezone
 
 from db_config import (
-    BIRDWEATHER_AUTH_KEY,
     DB_HOST,
     DB_PORT,
     DB_NAME,
     DB_USER,
     DB_PASSWORD,
 )
+
+BIRDWEATHER_AUTH_KEY = os.environ["BIRDWEATHER_AUTH_KEY"]
 
 STATION_ID = 14218
 

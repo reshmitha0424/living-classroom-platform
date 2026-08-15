@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BIRDWEATHER_AUTH_KEY = os.environ["BIRDWEATHER_AUTH_KEY"]
 DB_HOST = os.environ["DB_HOST"]
 DB_PORT = int(os.environ["DB_PORT"])
 DB_NAME = os.environ["DB_NAME"]
