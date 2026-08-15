@@ -169,13 +169,18 @@ def save_detection(conn, detection, fallback_station_id):
 while True:
 
     # Establish database connection for the current polling cycle
-    conn = psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    try:
+        conn = psycopg.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+        )
+    except psycopg.OperationalError as e:
+        print("PostgreSQL unavailable; retrying in 10 seconds:", e)
+        time.sleep(10)
+        continue
 
     try:
 
