@@ -20,11 +20,8 @@ from database_config import (
 # =========================================================
 
 # --------- Single station configuration ---------
-# STATION_ID = 14218
-# URL = f"https://app.birdweather.com/api/v1/stations/{STATION_ID}/detections"
-
 # Active BirdWeather station IDs used for ingestion
-STATION_IDS = [14218, 24415, 24416, 24418, 24420, 24421, 24422, 24423, 24424]
+STATION_IDS = [24415, 24416, 24418, 24420, 24421, 24422, 24423, 24424]
 
 # =========================================================
 # GET LATEST STORED TIMESTAMP

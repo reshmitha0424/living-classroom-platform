@@ -14,13 +14,13 @@ from database_config import (
 
 BIRDWEATHER_AUTH_KEY = os.environ["BIRDWEATHER_AUTH_KEY"]
 
-STATION_ID = 14218
+STATION_IDS = [24415, 24416, 24418, 24420, 24421, 24422, 24423, 24424]
 
 FROM_DATE = "2025-11-15"
 TO_DATE = "2026-07-29"
 
 
-def save_detection(conn, detection):
+def save_detection(conn, detection, fallback_station_id):
     species_data = detection.get("species") or {}
     soundscape_data = detection.get("soundscape") or {}
     timestamp_value = detection.get("timestamp")
@@ -41,7 +41,7 @@ def save_detection(conn, detection):
             ON CONFLICT DO NOTHING
         """, (
             detection.get("id"),
-            detection.get("stationId") or STATION_ID,
+            detection.get("stationId") or fallback_station_id,
             detection_dt,
             detection.get("confidence"),
             detection.get("probability"),
@@ -66,62 +66,65 @@ def pull_historic_data():
     ) as conn:
         url = f"https://app.birdweather.com/api/v1/stations/{BIRDWEATHER_AUTH_KEY}/detections"
 
-        start_dt = datetime.fromisoformat(FROM_DATE)
-        end_dt = datetime.fromisoformat(TO_DATE) + timedelta(days=1)
-
         total_fetched = 0
         warning_hours = []
-        range_start = start_dt
+        for station_id in STATION_IDS:
+            print(f"\nProcessing station: {station_id}")
 
-        while range_start < end_dt:
-            range_end = min(
-                range_start + timedelta(days=1),
-                end_dt
-            )
+            start_dt = datetime.fromisoformat(FROM_DATE)
+            end_dt = datetime.fromisoformat(TO_DATE) + timedelta(days=1)
+            range_start = start_dt
 
-            print(f"\nProcessing date: {range_start.date()}")
+            while range_start < end_dt:
+                range_end = min(
+                    range_start + timedelta(days=1),
+                    end_dt
+                )
 
-            current = range_end - timedelta(hours=1)
+                print(f"\nProcessing date: {range_start.date()}")
 
-            while current >= range_start:
-                next_hour = current + timedelta(hours=1)
+                current = range_end - timedelta(hours=1)
 
-                from_time = current.isoformat()
-                to_time = next_hour.isoformat()
+                while current >= range_start:
+                    next_hour = current + timedelta(hours=1)
 
-                print(f"\nFetching hour: {from_time} to {to_time}")
+                    from_time = current.isoformat()
+                    to_time = next_hour.isoformat()
 
-                params = {
-                    "limit": 100,
-                    "from": from_time,
-                    "to": to_time,
-                    "order": "asc"
-                }
+                    print(f"\nFetching hour: {from_time} to {to_time}")
 
-                response = requests.get(url, params=params, timeout=30)
-                response.raise_for_status()
+                    params = {
+                        "limit": 100,
+                        "from": from_time,
+                        "to": to_time,
+                        "order": "asc",
+                        "stationId": station_id
+                    }
 
-                data = response.json()
-                detections = data.get("detections", [])
+                    response = requests.get(url, params=params, timeout=30)
+                    response.raise_for_status()
 
-                for detection in detections:
-                    save_detection(conn, detection)
+                    data = response.json()
+                    detections = data.get("detections", [])
 
-                conn.commit()
+                    for detection in detections:
+                        save_detection(conn, detection, station_id)
 
-                total_fetched += len(detections)
+                    conn.commit()
 
-                print(f"Fetched {len(detections)} detections")
-                print(f"Total fetched so far: {total_fetched}")
+                    total_fetched += len(detections)
 
-                if len(detections) == 100:
-                    warning_hours.append((from_time, to_time))
-                    print(f"WARNING HOUR SAVED: {from_time} to {to_time}")
+                    print(f"Fetched {len(detections)} detections")
+                    print(f"Total fetched so far: {total_fetched}")
 
-                current -= timedelta(hours=1)
-                time.sleep(0.2)
+                    if len(detections) == 100:
+                        warning_hours.append((from_time, to_time))
+                        print(f"WARNING HOUR SAVED: {from_time} to {to_time}")
 
-            range_start = range_end
+                    current -= timedelta(hours=1)
+                    time.sleep(0.2)
+
+                range_start = range_end
 
         print("\nWARNING HOURS THAT NEED 15-MIN FETCH:")
         if warning_hours:
