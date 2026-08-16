@@ -1,0 +1,62 @@
+x-database-environment: &database-environment
+  DB_HOST: db
+  DB_PORT: "5432"
+  DB_NAME: ${DB_NAME:?Set DB_NAME in .env}
+  DB_USER: ${DB_USER:?Set DB_USER in .env}
+  DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+
+x-application-service: &application-service
+  build:
+    context: .
+  image: living-classroom-app:local
+  environment: *database-environment
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env}
+      POSTGRES_USER: ${DB_USER:?Set DB_USER in .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  db-init:
+    <<: *application-service
+    command: ["python", "initialize_database.py"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    <<: *application-service
+    command: ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  ingestion:
+    <<: *application-service
+    command: ["python", "continuous_ingestion.py"]
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
