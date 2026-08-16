@@ -34,7 +34,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: "no"
 
   web:
     <<: *application-service
@@ -71,7 +70,6 @@ services:
         condition: service_completed_successfully
     profiles:
       - manual
-    restart: "no"
 
 volumes:
   postgres_data:
