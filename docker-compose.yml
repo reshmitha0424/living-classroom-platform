@@ -58,5 +58,20 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  historical-ingestion:
+    <<: *application-service
+    command: ["python", "historical_ingestion.py"]
+    environment:
+      <<: *database-environment
+      BIRDWEATHER_AUTH_KEY: ${BIRDWEATHER_AUTH_KEY:?Set BIRDWEATHER_AUTH_KEY in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    profiles:
+      - manual
+    restart: "no"
+
 volumes:
   postgres_data:
