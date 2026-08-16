@@ -3,6 +3,7 @@ import requests
 import psycopg
 import time
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from database_config import (
     DB_HOST,
@@ -16,8 +17,7 @@ BIRDWEATHER_AUTH_KEY = os.environ["BIRDWEATHER_AUTH_KEY"]
 
 STATION_IDS = [24415, 24416, 24418, 24420, 24421, 24422, 24423, 24424]
 
-FROM_DATE = "2025-11-15"
-TO_DATE = "2026-07-29"
+FROM_DATE = "2026-03-01"
 
 
 def save_detection(conn, detection, fallback_station_id):
@@ -72,7 +72,8 @@ def pull_historic_data():
             print(f"\nProcessing station: {station_id}")
 
             start_dt = datetime.fromisoformat(FROM_DATE)
-            end_dt = datetime.fromisoformat(TO_DATE) + timedelta(days=1)
+            today = datetime.now(ZoneInfo("America/New_York")).date()
+            end_dt = datetime.combine(today + timedelta(days=1), datetime.min.time())
             range_start = start_dt
 
             while range_start < end_dt:
