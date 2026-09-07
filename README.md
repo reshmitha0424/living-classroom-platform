@@ -1,3 +1,7 @@
+
+<img width="1915" height="916" alt="image" src="https://github.com/user-attachments/assets/b4132c04-8526-421a-8b74-a17654ed9f21" />
+
+
 # Living Classroom Platform
 
 Living Classroom Platform is a Flask-based bird activity monitoring and analytics dashboard developed for the University of Delaware Living Classroom project. It collects live and historical detection data from BirdWeather, stores detections in PostgreSQL, and provides interactive dashboards for viewing species activity, station locations, detection trends, and short-term activity forecasts.
