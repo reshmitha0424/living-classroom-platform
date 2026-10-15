@@ -183,41 +183,43 @@ while True:
 
         # Loop through each configured station
         for station_id in STATION_IDS:
+            try:
+                url = f"https://app.birdweather.com/api/v1/stations/{station_id}/detections"
 
-            # Build station-specific BirdWeather API URL
-            url = f"https://app.birdweather.com/api/v1/stations/{station_id}/detections"
+                r = requests.get(url, timeout=20)
+                r.raise_for_status()
+                data = r.json()
 
-            # Request latest detections from BirdWeather API
-            r = requests.get(url, timeout=20)
-            r.raise_for_status()
-            data = r.json()                                                                  
-            
-            detections = data.get("detections", [])             # Extract detection records from API response            
-            latest_ts = get_latest_timestamp(conn, station_id)  # Get latest stored timestamp for this station
-            new_count = 0                                       # Track number of new detections inserted
+                detections = data.get("detections", [])
+                latest_ts = get_latest_timestamp(conn, station_id)
+                new_count = 0
 
-            # Process each detection returned by the API
-            for d in detections:
-                detection_ts = d.get("timestamp")
-                detection_dt = datetime.fromisoformat(detection_ts.replace("Z", "+00:00"))
-                if detection_dt.tzinfo is None:
-                    detection_dt = detection_dt.replace(tzinfo=timezone.utc)
+                for d in detections:
+                    detection_ts = d.get("timestamp")
 
-                # Skip detections already stored in the database
-                if latest_ts and detection_dt <= latest_ts:
-                    continue
+                    detection_dt = datetime.fromisoformat(
+                        detection_ts.replace("Z", "+00:00")
+                    )
 
-                # Save new detection record
-                if save_detection(conn, d, station_id):
-                    new_count += 1
+                    if detection_dt.tzinfo is None:
+                        detection_dt = detection_dt.replace(tzinfo=timezone.utc)
 
-            # Commit saved detections for the current station
-            conn.commit()
-            print(f"Station {station_id}: {new_count} new detections saved")
+                    if latest_ts and detection_dt <= latest_ts:
+                        continue
 
-    # Handle API, database, or ingestion errors safely
+                    if save_detection(conn, d, station_id):
+                        new_count += 1
+
+                conn.commit()
+                print(f"Station {station_id}: {new_count} new detections saved", flush=True)
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Station {station_id} failed: {e}", flush=True)
+
     except Exception as e:
-        print("Error:", e)
+        conn.rollback()
+        print("Unexpected ingestion error:", e, flush=True)
     
     conn.close()                                                # Close database connection after each polling cycle  
     time.sleep(60)                                              # Wait before checking for new detections again
